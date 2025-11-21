@@ -1,0 +1,72 @@
+version: "3.8"
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./devops_config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090" # Puerto estándar para verificar métricas
+    restart: always
+    networks:
+      - devops
+
+  loki:
+    image: grafana/loki:2.8.2
+    container_name: loki
+    ports:
+      - "3100:3100" # Puerto estándar para ingestión de logs
+    volumes:
+      # CORRECCIÓN: Asumí que el archivo de config se llama 'loki-config.yaml'
+      - ./devops_config/loki-config.yaml:/etc/loki/local-config.yaml:ro
+      - ./loki_data:/loki # volumen para index/chunks
+      - ./wal_data:/wal # volumen para WAL
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - devops
+
+  promtail:
+    image: grafana/promtail:2.8.2
+    container_name: promtail
+    volumes:
+      - ./devops_config/promtail-config.yml:/etc/promtail/config.yml:ro
+      # Montaje de logs de la aplicación para que Promtail los lea (Punto 2)
+      - ./logs:/usr/src/app/logs
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - devops
+
+  grafana:
+    image: grafana/grafana:9.5.0
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - loki
+    networks:
+      - devops
+
+  back: # Este servicio corresponde al 'app' solicitado en la evaluación
+    image: raynagah/ev3-devops:latest # Imagen publicada en tu Docker Hub
+    container_name: back
+    ports:
+      - "3001:3001"
+    volumes:
+      # Logs compartidos con Promtail
+      - ./logs:/usr/src/app/logs
+    networks:
+      - devops
+
+networks:
+  devops:
+    driver: bridge # Definición explícita del driver (recomendado)
+
+volumes:
+  prometheus_data:
