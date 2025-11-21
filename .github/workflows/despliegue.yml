@@ -1,8 +1,8 @@
-name: Build and Push Docker
+name: Build, Push Docker and Deploy to EC2
 
 on:
   push:
-    [cite_start]branches: [ "main" ] # [cite: 12]
+    branches: [ "main" ]
 
 # Definimos tus variables aquí para que sea fácil de leer y modificar
 env:
