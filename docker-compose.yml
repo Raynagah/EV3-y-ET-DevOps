@@ -5,10 +5,11 @@ services:
     image: prom/prometheus
     container_name: prometheus
     volumes:
+      # Coincide con tu archivo 'prometheus.yml'
       - ./devops_config/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     ports:
-      - "9090:9090" # Puerto estándar para verificar métricas
+      - "9090:9090"
     restart: always
     networks:
       - devops
@@ -17,12 +18,12 @@ services:
     image: grafana/loki:2.8.2
     container_name: loki
     ports:
-      - "3100:3100" # Puerto estándar para ingestión de logs
+      - "3100:3100"
     volumes:
-      # CORRECCIÓN: Asumí que el archivo de config se llama 'loki-config.yaml'
-      - ./devops_config/loki-config.yaml:/etc/loki/local-config.yaml:ro
-      - ./loki_data:/loki # volumen para index/chunks
-      - ./wal_data:/wal # volumen para WAL
+      # AJUSTE: Mapeamos tu archivo 'loki-config.yml' a la ruta interna que espera Loki
+      - ./devops_config/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - ./loki_data:/loki # Tu carpeta vacía para datos
+      - ./loki_wal:/wal   # AJUSTE: Tu carpeta vacía para WAL
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       - devops
@@ -31,8 +32,8 @@ services:
     image: grafana/promtail:2.8.2
     container_name: promtail
     volumes:
+      # Coincide con tu archivo 'promtail-config.yml'
       - ./devops_config/promtail-config.yml:/etc/promtail/config.yml:ro
-      # Montaje de logs de la aplicación para que Promtail los lea (Punto 2)
       - ./logs:/usr/src/app/logs
     command: -config.file=/etc/promtail/config.yml
     depends_on:
@@ -53,20 +54,19 @@ services:
     networks:
       - devops
 
-  back: # Este servicio corresponde al 'app' solicitado en la evaluación
-    image: raynagah/ev3-devops:latest # Imagen publicada en tu Docker Hub
+  back:
+    image: raynagah/ev3-devops:latest
     container_name: back
     ports:
       - "3001:3001"
     volumes:
-      # Logs compartidos con Promtail
       - ./logs:/usr/src/app/logs
     networks:
       - devops
 
 networks:
   devops:
-    driver: bridge # Definición explícita del driver (recomendado)
+    driver: bridge
 
 volumes:
   prometheus_data:
