@@ -1,12 +1,13 @@
-name: Build, Push Docker and Deploy to EC2
+name: Build and Push Docker
 
 on:
   push:
-    branches: [ "main" ]
+    [cite_start]branches: [ "main" ] # [cite: 12]
 
+# Definimos tus variables aquí para que sea fácil de leer y modificar
 env:
-  DOCKERHUB_USERNAME: jocamposar #usuario DockerHub
-  DOCKERHUB_REPO:   full_stack2_back     #repo DockerHub
+  DOCKER_USER: raynagah        # Tu usuario de Docker Hub
+  DOCKER_REPO: ev3-devops      # Tu repositorio creado en Docker Hub
 
 jobs:
   build:
@@ -18,15 +19,16 @@ jobs:
       uses: actions/checkout@v4
 
     # 2️⃣ Loguear en Docker Hub
+    # El enunciado exige conectar usando secrets 
     - name: Log in to Docker Hub
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-
     # 3️⃣ Construir y subir imagen Docker
+    # El enunciado pide etiquetar como: usuarioDockerHub/nombreImagen:latest 
     - name: Build and push Docker image
       run: |
-        docker build -t $DOCKERHUB_USERNAME/$DOCKERHUB_REPO:latest .
-        docker push $DOCKERHUB_USERNAME/$DOCKERHUB_REPO:latest
+        docker build -t $DOCKER_USER/$DOCKER_REPO:latest .
+        docker push $DOCKER_USER/$DOCKER_REPO:latest
