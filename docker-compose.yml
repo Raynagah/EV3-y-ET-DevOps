@@ -5,7 +5,6 @@ services:
     image: prom/prometheus
     container_name: prometheus
     volumes:
-      # Coincide con tu archivo 'prometheus.yml'
       - ./devops_config/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     ports:
@@ -20,10 +19,9 @@ services:
     ports:
       - "3100:3100"
     volumes:
-      # AJUSTE: Mapeamos tu archivo 'loki-config.yml' a la ruta interna que espera Loki
       - ./devops_config/loki-config.yml:/etc/loki/local-config.yaml:ro
-      - ./loki_data:/loki # Tu carpeta vacía para datos
-      - ./loki_wal:/wal   # AJUSTE: Tu carpeta vacía para WAL
+      - ./loki_data:/loki 
+      - ./loki_wal:/wal   
     command: -config.file=/etc/loki/local-config.yaml
     networks:
       - devops
@@ -32,7 +30,6 @@ services:
     image: grafana/promtail:2.8.2
     container_name: promtail
     volumes:
-      # Coincide con tu archivo 'promtail-config.yml'
       - ./devops_config/promtail-config.yml:/etc/promtail/config.yml:ro
       - ./logs:/usr/src/app/logs
     command: -config.file=/etc/promtail/config.yml
